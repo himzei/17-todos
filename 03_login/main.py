@@ -8,6 +8,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
+from starlette.middleware.sessions import SessionMiddleware
 
 load_dotenv()
 
@@ -25,6 +26,18 @@ def get_password_hash(password: str):
     if len(password_bytes) > 72: 
         raise ValueError("Password must be 72 bytes or less.")
     return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+
+# 비밀번호 검증 
+def verify_password(plain_password: str, hashed_password: str): 
+    try: 
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8")
+        )
+    except ValueError: 
+        return False
+
+app.add_middleware(SessionMiddleware, secret_key="secret-key")
 
 class Memo(Base):
     __tablename__ = "memos"
@@ -71,7 +84,7 @@ def signup(signup_data: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         username=signup_data.username, 
         email = signup_data.email, 
-        hashed_password = signup_data.password
+        hashed_password = get_password_hash(signup_data.password)
     )
     db.add(new_user)
     db.commit() 
