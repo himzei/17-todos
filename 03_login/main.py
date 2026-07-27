@@ -65,6 +65,10 @@ class UserCreate(BaseModel):
     email: str 
     password: str
 
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
 def get_db():
     db = Session(bind=engine)
     try: 
@@ -91,7 +95,25 @@ def signup(signup_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user) 
     return new_user
    
+# 로그인
+@app.post("/login")
+def login(
+    request: Request, signin_data: UserLogin, db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.username == signin_data.username).first()
+    if user and verify_password(signin_data.password, user.hashed_password):
+        request.session["username"] = user.username
+        print(request.session)
+        return {"message": "로그인이 성공했습니다."}
 
+# 로그아웃
+@app.post("/logout")
+def logout(request: Request): 
+    request.session.pop("username", None)
+    print(request.session)
+    return {
+        "message": "로그아웃 되었습니다."
+    }
 
 @app.post("/memos")
 def create_memo(memo: MemoCreate, db: Session = Depends(get_db)):
