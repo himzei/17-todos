@@ -53,5 +53,18 @@
     </nav>
 
     {% block contents %}{% endblock %}
+
+    <footer class="border-t border-slate-200 bg-white/80 py-6 backdrop-blur">
+      <div
+        class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 text-sm text-slate-500 sm:flex-row sm:px-6 lg:px-8"
+      >
+        <p>© 2026 TodoList. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="/memos" class="transition hover:text-slate-700">메모</a>
+          <a href="/signup" class="transition hover:text-slate-700">회원가입</a>
+          <a href="/login" class="transition hover:text-slate-700">로그인</a>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
