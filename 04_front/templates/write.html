@@ -19,7 +19,7 @@
       </p>
     </div>
 
-    <form action="/memos" method="post" class="space-y-5">
+    <form id="memo-form" class="space-y-5">
       <div>
         <label for="title" class="mb-1 block text-sm font-medium text-slate-700"
           >제목</label
@@ -65,6 +65,36 @@
         </button>
       </div>
     </form>
+
+    <script>
+      document
+        .getElementById("memo-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const payload = {
+            title: document.getElementById("title").value,
+            content: document.getElementById("content").value,
+          };
+
+          const response = await fetch("/memos", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (response.status >= 200 && response.status < 300) {
+            window.location.href = "/memos";
+          } else {
+            const errorText = await response.text();
+            alert(
+              `메모 저장에 실패했습니다. (${response.status})\n${errorText}`,
+            );
+          }
+        });
+    </script>
   </div>
 </div>
 {% endblock %}
