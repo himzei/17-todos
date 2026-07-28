@@ -1,7 +1,7 @@
 import os
 import bcrypt
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
@@ -125,8 +125,18 @@ def logout(request: Request):
         "message": "로그아웃 되었습니다."
     }
 
+# 메모생성
 @app.post("/memos")
 async def create_memo(request: Request, db: Session = Depends(get_db)):
+
+    username = request.session.get("username")
+    if username is None: 
+        raise HTTPException(status_code=401, detail="허가되지 않았습니다.")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None: 
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
     content_type = request.headers.get("content-type", "")
 
     if "application/json" in content_type:
@@ -138,7 +148,7 @@ async def create_memo(request: Request, db: Session = Depends(get_db)):
         title = form.get("title", "")
         content = form.get("content", "")
 
-    new_memo = Memo(title=title, content=content)
+    new_memo = Memo(user_id = user.id, title=title, content=content)
     db.add(new_memo)
     db.commit()
     db.refresh(new_memo)
