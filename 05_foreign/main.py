@@ -118,12 +118,9 @@ def read_login(request: Request):
 
 # 로그아웃
 @app.post("/logout")
-def logout(request: Request): 
-    request.session.pop("username", None)
-    print(request.session)
-    return {
-        "message": "로그아웃 되었습니다."
-    }
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=303)
 
 # 메모생성
 @app.post("/memos")
@@ -166,7 +163,16 @@ def memo_write(request: Request):
 # 메모조회
 @app.get("/memos")
 def read_memos(request: Request, db: Session = Depends(get_db)):
-    memos = db.query(Memo).order_by(Memo.id.asc()).all()
+    username = request.session.get("username")
+    if username is None: 
+        raise HTTPException(status_code=401, detail="허가되지 않았습니다.")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    
+    memos = db.query(Memo).filter(Memo.user_id == user.id).all()
     accept_header = request.headers.get("accept", "")
 
     if "application/json" in accept_header:
@@ -178,8 +184,17 @@ def read_memos(request: Request, db: Session = Depends(get_db)):
 
 # 메모수정
 @app.put("/memos/{item_id}")
-def update_memo(item_id: int, memo:MemoUpdate, db: Session = Depends(get_db)):
-    db_memo = db.query(Memo).filter(Memo.id == item_id).first()
+def update_memo(request: Request, item_id: int, memo:MemoUpdate, db: Session = Depends(get_db)):
+    username = request.session.get("username")
+    if username is None: 
+        raise HTTPException(status_code=401, detail="허가되지 않았습니다.")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    
+    db_memo = db.query(Memo).filter(Memo.user_id == user.id, Memo.id == item_id).first()
 
     if db_memo is None:
         return {"error": "메모를 찾을 수 없습니다."}
@@ -197,8 +212,17 @@ def update_memo(item_id: int, memo:MemoUpdate, db: Session = Depends(get_db)):
 
 # 메모삭제
 @app.delete("/memos/{item_id}")
-def delete_memo(item_id: int, db: Session = Depends(get_db)):
-    db_memo = db.query(Memo).filter(Memo.id == item_id).first()
+def delete_memo(request: Request, item_id: int, db: Session = Depends(get_db)):
+    username = request.session.get("username")
+    if username is None: 
+        raise HTTPException(status_code=401, detail="허가되지 않았습니다.")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+
+    db_memo = db.query(Memo).filter(Memo.user_id == user.id, Memo.id == item_id).first()
 
     if db_memo is None:
         return {

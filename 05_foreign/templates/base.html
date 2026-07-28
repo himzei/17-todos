@@ -36,6 +36,23 @@
           >
             메모
           </a>
+
+          {% if request.session.get("username") %}
+          <a
+            href="/signup"
+            class="rounded-lg px-3 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            {{ request.session.get("username") }}님 환영합니다.
+          </a>
+          <form action="/logout" method="post" class="inline">
+            <button
+              type="submit"
+              class="rounded-lg bg-slate-900 px-3 py-2 text-white transition hover:bg-slate-800"
+            >
+              로그아웃
+            </button>
+          </form>
+          {% else %}
           <a
             href="/signup"
             class="rounded-lg px-3 py-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
@@ -48,6 +65,7 @@
           >
             로그인
           </a>
+          {% endif %}
         </div>
       </div>
     </nav>
