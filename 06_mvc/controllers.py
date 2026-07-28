@@ -5,6 +5,7 @@ from schemas import UserCreate, UserLogin, MemoCreate, MemoUpdate
 from sqlalchemy.orm import Session
 from models import User, Memo
 from dependencies import get_password_hash, verify_password, get_db
+from main import app
 
 
 templates = Jinja2Templates(directory="templates")
